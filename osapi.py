@@ -1,5 +1,6 @@
 import requests
 import sqlite3
+from keys import*
 
 churchill_bbox = [541000, 254000, 551000, 264000]
 
@@ -22,4 +23,22 @@ def request_buildings(bbox, count = 100):
     }
     return requests.get('https://api.os.uk/features/v1/wfs', args)
 
-r = request_buildings(churchill_bbox)
+def request_linked_identifiers(id):
+    args = {
+        'key': api_key
+    }
+    return requests.get('https://api.os.uk/search/links/v1/identifiers/' + id, args)
+
+def request_uprn(id):
+    res = request_linked_identifiers(id).json()
+    uprns = []
+    if 'message' in res:
+        if res['message'] == "Identifier not found":
+            return []
+        elif res['message'] == 'Identifier is not valid':
+            return ['Invalid TOID']
+    for correl in res['linkedIdentifiers'][0]['correlations']:
+        if correl['correlatedIdentifierType'] == 'UPRN':
+            for match in correl['correlatedIdentifiers']:
+                uprns.append(match['identifier'])
+    return uprns

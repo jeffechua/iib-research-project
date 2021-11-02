@@ -8,7 +8,7 @@ import geopandas
 import os
 from helpers import *
 
-__all__ = ['vertices', 'triangles', 'o', 'data']
+__all__ = ['vertices', 'triangles', 'lookup', 'o', 'data']
 
 timer = Timer()
 
@@ -18,9 +18,9 @@ for path, dirs, files in os.walk('download/heights/tl/'):
     for dir in dirs:
         if dir.endswith('.gdb'):
             paths.append(os.path.join(path, dir))
-paths = paths[1:3]
+paths = paths[1:2]
 # load them
-columns = ['abshmin', 'absh2', 'geometry']
+columns = ['os_topo_toid', 'os_topo_version', 'abshmin', 'absh2', 'geometry']
 write(f'Loading gdb files... (1/{len(paths)})')
 data = geopandas.read_file(paths.pop())[columns]
 for i in range(len(paths)):
@@ -40,7 +40,9 @@ o = data.geometry[0].exterior.centroid
 # build model
 all_vs = []     # serialised vector6 array
 all_trigs = []  # serialised int-triple array
+lookup = np.empty((len(data.index), 4), dtype='uint32') # start and length of vertex and triangle subarray 
 reporter = Timer(0)
+t0 = Timer()
 t1 = Timer()
 t2 = Timer()
 t3 = Timer()
@@ -52,10 +54,14 @@ write(f'Vectorising for processing...')
 data_dict = data.to_dict('records')
 print(f' done. ({timer.lap(2)}s)')
 for i, row in enumerate(data_dict):
-    t1.start()
-    geometry = row['geometry']
+    t0.start()
+    geometry = row['geometry'] # geometries are clockwise!
     bottom = row['abshmin']
     top = row['absh2']
+    lookup[i,0] = len(all_vs)
+    lookup[i,2] = len(all_trigs)
+    t0.stop()
+    t1.start()
     # report on progress; due to the number of buildings, only do this at 2 Hz
     if reporter.current() > 0.5:
         reporter.lap()
@@ -93,23 +99,27 @@ for i, row in enumerate(data_dict):
         jm = (len(poly_vs)//2-1) if j == 0 else (j-1)
         all_vs.extend([poly_vs[j*2], top, poly_vs[j*2+1], 0, 1, 0,
                        poly_vs[j*2], bottom, poly_vs[j*2+1],
-                       poly_vs[j*2+1] - poly_vs[jm*2+1], 0, poly_vs[jm*2] - poly_vs[j*2]])
+                       poly_vs[jm*2+1] - poly_vs[j*2+1], 0, poly_vs[j*2] - poly_vs[jm*2]])
         # By using flat normals, we don't have to duplicate vertices.
         # By default, flat attributes take from the last vertex in each triangle.
         # As configured here, the leading bottom (j*2+1) has the required normal,
         # so we want to triangulate the face as such to hit j*2+1 last:
         #           (up normal)   jm*2  42--1  j*2   (up normal)
         #                               | \ |
-        # (normal of prev face) jm*2+1  5--63  j*2+1 (normal of this face)
-        all_trigs.extend([offset+j*2, offset+jm*2, offset+j*2+1,     # 1 2 3
-                          offset+jm*2, offset+jm*2+1, offset+j*2+1])  # 4 5 6
+        # (normal of prev face) jm*2+1  5--63  j*2+1 (normal of this face, into screen (clockwise geometry))
+        all_trigs.extend([offset+jm*2, offset+j*2, offset+j*2+1,     # 1 2 3
+                          offset+jm*2+1, offset+jm*2, offset+j*2+1])  # 4 5 6
         # since the top faces only use top vertices, which all have up normals, they are automatically fine.
         # NOTE: normals are not normalised here, but instead every frame in the vertex shader, which
         # sounds silly, but I want this here uncluttered, and the GPU isn't exactly struggling.
     t3.stop()
+    t0.start()
+    lookup[i,1] = len(all_vs)
+    lookup[i,3] = len(all_trigs)
+    t0.stop()
 
 write(f'Triangulating buildings ({len(data.index)}/{len(data.index)})...')
-print(f' done. ({t1.total(1)}+{t2.total(1)}+{t3.total(1)}={timer.lap(1)}s)')
+print(f' done. ({t0.total(2)}+{t1.total(2)}+{t2.total(2)}+{t3.total(2)}={timer.lap(1)}s)')
 
 print('Numpifying data...', end='')
 

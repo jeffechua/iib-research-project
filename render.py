@@ -1,63 +1,51 @@
 import numpy as np
 from numpy import clip as clamp
+from shapely.geometry import box
 from math import fmod, sin, cos, pi
 from geometrise import *
+from osapi import *
 import glm
 import glfw
 from OpenGL.GL import shaders
 from OpenGL.GL import *
 
 
-# vertices = np.array([-0.5, -0.5, 0.0, 1.0, 0.0, 0.0,
-#             0.5, -0.5, 0.0, 1.0, 1.0, 0.0,
-#             0.0,  0.5, 0.0,  1.0, 0.0, 1.0], dtype='float32')
-# triangles = np.array([0,1,2], dtype='uint32')
+pointer_verts = np.array([0, .15, 0, 1, 1, 1,
+                          5, .15, 0, 1, 0, 0,
+                          0,   5, 0, 0, 1, 0,
+                          0, .15, 5, 0, 0, 1], dtype='float32')
+pointer_trigs = np.array([0, 1, 0, 2, 0, 3], dtype='uint32')
 
-pointer_verts = np.array([1, 1, 0, 0, 1, 0,
-                          -1, 1, 0, 0, 1, 0,
-                          0, 0, 0, 0, 1, 0,
-                          0, 1, 1, 0, 1, 0,
-                          0, 1, -1, 0, 1, 0,
-                          0, 0, 0, 0, 1, 0,
-                          1, 1, 0, 0, 1, 0,
-                          0, 1, 1, 0, 1, 0,
-                          -1, 1, 0, 0, 1, 0,
-                          -1, 1, 0, 0, 1, 0,
-                          0, 1, -1, 0, 1, 0,
-                          1, 1, 0, 0, 1, 0], dtype='float32')
-pointer_trigs = np.array(
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], dtype='uint32')
+light_dir = glm.normalize(glm.vec3(-2.0, -1.0, -1.5))
 
-light_dir = glm.normalize(glm.vec3(2.0, -1.0, 1.5))
-
-print('Trigs imported.')
+print('Starting render...')
 
 # glfw stuff
 
-SCREEN_RADIUS = 300
 glfw.init()
 glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
 glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
 glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, GL_TRUE)
 glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-window = glfw.create_window(
-    SCREEN_RADIUS*2, SCREEN_RADIUS*2, 'Render', None, None)
+window = glfw.create_window(800, 600, 'Render', None, None)
 glfw.set_window_pos(window, 0, 0)
 glfw.make_context_current(window)
 
 mouse_x = 0
 mouse_y = 0
-mouse_worldpos = glm.vec3()
 mouse_left_down = False
 mouse_right_down = False
 mouse_just_down = False
+
+mouse_worldpos = glm.vec3()
+highlit_id = -1
 
 pos_x = o.x
 pos_z = o.y
 angle_x = 0.0
 angle_y = 0.0
 matrix = glm.mat4()
-radius = 100.0
+height = 100.0  # y
 
 
 def mouse_button_callback(window, button, action, mods):
@@ -67,6 +55,10 @@ def mouse_button_callback(window, button, action, mods):
             mouse_left_down = True
             mouse_right_down = False
             mouse_just_down = True
+            if highlit_id != -1:
+                toid = data.os_topo_toid[highlit_id]
+                glfw.set_window_title(
+                    window, f'TOID: {toid}(v{data.os_topo_version[highlit_id]}) UPRN: {", ".join(request_uprn(toid))}')
         if button == glfw.MOUSE_BUTTON_RIGHT:
             mouse_right_down = True
             mouse_left_down = False
@@ -80,10 +72,10 @@ def mouse_button_callback(window, button, action, mods):
 def mouse_move_callback(window, new_x, new_y):
     X_ROT_SENSITIVITY = 0.05
     Y_ROT_SENSITIVITY = 0.03
-    global mouse_just_down, mouse_left_down, mouse_right_down, mouse_x, mouse_y, pos_x, pos_z, angle_x, angle_y, radius, matrix, mouse_worldpos
-    translation_factor = radius/SCREEN_RADIUS
+    global mouse_just_down, mouse_left_down, mouse_right_down, mouse_x, mouse_y, pos_x, pos_z, angle_x, angle_y, height, matrix, mouse_worldpos, highlit_id
+    translation_factor = height/glfw.get_window_size(window)[1]
     dx = new_x - mouse_x
-    dy = new_y - mouse_y
+    dy = mouse_y - new_y  # window space is y-inverted compared to world
     if mouse_just_down:
         mouse_just_down = False
     else:
@@ -93,23 +85,16 @@ def mouse_move_callback(window, new_x, new_y):
             pos_z = pos_z - (dx*sin(angle_y)+dy * cos(angle_y)
                              / clamp(cos(angle_x), 0.01, 1))*translation_factor
         elif mouse_right_down:
-            angle_y = fmod(angle_y + dx * Y_ROT_SENSITIVITY, 2*pi)
-            angle_x = clamp(angle_x - dy * X_ROT_SENSITIVITY, 0, pi/2)
+            angle_y = fmod(angle_y - dx * Y_ROT_SENSITIVITY, 2*pi)
+            angle_x = clamp(angle_x + dy * X_ROT_SENSITIVITY, 0, pi/2)
     mouse_x = new_x
     mouse_y = new_y
-    depth_read = glReadPixels(mouse_x, SCREEN_RADIUS*2 - mouse_y, 1, 1,
-                              GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]
-    clip_coords = glm.vec4(mouse_x/SCREEN_RADIUS-1,
-                           1-mouse_y/SCREEN_RADIUS, depth_read*2-1, 1)
-    # inexplicably the matrix needs transposing??? probably some column-/row-major bullshit
-    mouse_worldpos = glm.transpose(
-        matrix) / clip_coords + glm.vec4(pos_x, 0, pos_z, 0)
 
 
 def mouse_scroll_callback(window, dx, dy):
     RADIUS_SENSITIVITY = 0.02
-    global radius
-    radius = clamp(radius*(1+dy*RADIUS_SENSITIVITY), 10, 10000)
+    global height
+    height = clamp(height*(1+dy*RADIUS_SENSITIVITY), 10, 10000)
 
 
 glfw.set_cursor_pos_callback(window, mouse_move_callback)
@@ -125,6 +110,7 @@ uniform mat4 matrix;
 uniform vec3 offset;
 uniform vec3 lightDir;
 uniform vec3 baseColor;
+uniform int colorMode;
 layout(location = 1) in vec3 position;
 layout(location = 2) in vec3 normal;
 flat out vec4 color;
@@ -133,7 +119,7 @@ void main() {
     float attenuation = dot(normalize(normal), lightDir);
     attenuation *= attenuation < 0 ? -0.8 : -0.2;
     attenuation += 0.2f;
-    color = vec4(baseColor * attenuation, 1.0f);
+    color = vec4(colorMode == 0 ? (baseColor * attenuation) : normal, 1.0f);
 }
 """, GL_VERTEX_SHADER)
 fragment_shader = shaders.compileShader("""
@@ -190,22 +176,39 @@ matrix_location = glGetUniformLocation(shader, 'matrix')
 offset_location = glGetUniformLocation(shader, 'offset')
 light_location = glGetUniformLocation(shader, 'lightDir')
 color_location = glGetUniformLocation(shader, 'baseColor')
+mode_location = glGetUniformLocation(shader, 'colorMode')
 
 # activate depth testing
+glEnable(GL_CULL_FACE)
 glEnable(GL_DEPTH_TEST)
 glDepthMask(GL_TRUE)
 glDepthFunc(GL_LEQUAL)
 glDepthRange(0.0, 1.0)
 
 while not glfw.window_should_close(window):
+    # mouseover detection
+    window_size = glfw.get_window_size(window)
+    aspect = window_size[0]/window_size[1]
+    depth_read = glReadPixels(mouse_x, window_size[1] - mouse_y, 1, 1,
+                              GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]
+    clip_coords = glm.vec4(mouse_x/window_size[0]*2-1, 1-mouse_y/window_size[1]*2,
+                           depth_read*2-1, 1)  # inexplicably the matrix needs transposing??? probably some column-/row-major bullshit
+    mouse_worldpos = glm.transpose(
+        matrix) / clip_coords + glm.vec4(pos_x, 0, pos_z, 0)
+    hits = data.sindex.query(box(mouse_worldpos.x-0.2, mouse_worldpos.z-0.05,
+                                 mouse_worldpos.x+0.05, mouse_worldpos.z+0.05),
+                             predicate='intersects')
+    highlit_id = hits[0] if len(hits) > 0 else -1
     # figure out projection matrix and lighting
     matrix = glm.rotate(-angle_y, glm.vec3(0, 1, 0))
-    matrix = glm.rotate(matrix, angle_x - pi/2, glm.vec3(1, 0, 0))
-    matrix = matrix * glm.ortho(-radius, radius, -
-                                radius, radius, -radius*10, radius*10)
+    matrix = glm.rotate(matrix, pi/2 - angle_x, glm.vec3(1, 0, 0))
+    matrix = matrix * glm.ortho(-height*aspect/2, height*aspect/2,
+                                -height/2, height/2,
+                                height/2*10, -height/2*10)
     glUniform3f(light_location, light_dir[0], light_dir[1], light_dir[2])
     glUniformMatrix4fv(matrix_location, 1, False,
                        np.array(matrix, dtype='float32'))
+    # print(matrix)
     # clear stuff
     glClearColor(0, 0, 0, 0)
     glClearDepth(1.0)
@@ -215,14 +218,23 @@ while not glfw.window_should_close(window):
     glBindBuffer(GL_ARRAY_BUFFER, world_vertex_buffer)
     glUniform3f(offset_location, pos_x, 0, pos_z)
     glUniform3f(color_location, 1, 1, 1)
-    glDrawElements(GL_TRIANGLES, len(triangles), GL_UNSIGNED_INT, None)
+    glUniform1i(mode_location, 0)
+    glDrawElements(GL_TRIANGLES, len(triangles),
+                   GL_UNSIGNED_INT, ctypes.c_void_p(0))
+    # draw highlight
+    if highlit_id != -1:
+        glUniform3f(color_location, 0, 1, 0)
+        glDrawElements(GL_TRIANGLES, lookup[highlit_id, 3] - lookup[highlit_id, 2],
+                       GL_UNSIGNED_INT, ctypes.c_void_p(int(lookup[highlit_id, 2]*4)))
     # draw pointer
+    glDepthMask(GL_FALSE)
     glBindVertexArray(pointer_vao)
     glBindBuffer(GL_ARRAY_BUFFER, pointer_vertex_buffer)
     glUniform3f(offset_location, pos_x - mouse_worldpos.x, -
                 mouse_worldpos.y, pos_z-mouse_worldpos.z)
-    glUniform3f(color_location, 1, 0, 0)
-    glDrawElements(GL_TRIANGLES, len(pointer_trigs), GL_UNSIGNED_INT, None)
+    glUniform1i(mode_location, 1)
+    glDrawElements(GL_LINES, len(pointer_trigs), GL_UNSIGNED_INT, None)
+    glDepthMask(GL_TRUE)
     # swap buffers
     glfw.swap_buffers(window)
     glfw.poll_events()
