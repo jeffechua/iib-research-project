@@ -1,0 +1,55 @@
+brew install maven
+
+# Check the version:
+java -version
+#  OpenJDK 64-Bit Server VM Homebrew (build 17.0.1+0, mixed mode, sharing)
+# We want Java 8. Install it:
+brew install openjdk@8
+# Check it's installed:
+/usr/libexec/java_home -V
+#  11.0.13 (x86_64) "Amazon.com Inc." - "Amazon Corretto 11" /Users/jefferson/Library/Java/JavaVirtualMachines/corretto-11.0.13/Contents/Home
+# OpenJDK installs don't show up! We find out why if we look at
+brew info openjdk@8
+#  openjdk@8 is keg-only, which means it was not symlinked into /usr/local,
+#  because macOS provides similar software and installing this software in
+#  parallel can cause all kinds of trouble.
+# We need to symlink it ourselves. Copy and paste the commands provided for openjdk@8 (and openjdk if you like).
+# Now, querying VMs gives:
+/usr/libexec/java_home -V
+#  17.0.1 (x86_64) "Homebrew" - "OpenJDK 17.0.1" /usr/local/Cellar/openjdk/17.0.1/libexec/openjdk.jdk/Contents/Home
+#  11.0.13 (x86_64) "Amazon.com Inc." - "Amazon Corretto 11" /Users/jefferson/Library/Java/JavaVirtualMachines/corretto-11.0.13/Contents/Home
+#  1.8.0_312 (x86_64) "Homebrew" - "OpenJDK 8" /usr/local/Cellar/openjdk@8/1.8.0+312/libexec/openjdk.jdk/Contents/Home
+# To select the OpenJDK 8 installation, do:
+export JAVA_HOME=$(/usr/libexec/java_home -v1.8)
+# Check it worked properly
+java -version
+#  OpenJDK Runtime Environment Homebrew (build 17.0.1+0)
+#  OpenJDK 64-Bit Server VM Homebrew (build 17.0.1+0, mixed mode, sharing)
+
+# Note that you need to export JAVA_HOME before starting Blazegraph, and possibly before using Maven as well; I haven't tested Mavenside if it makes a difference.
+
+PREFIX ocgl: <http://www.theworldavatar.com/ontology/ontocitygml/citieskg/OntoCityGML.owl#> 
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+INSERT DATA {
+   <http://localhost:9999/blazegraph/namespace/churchill/sparql/> ocgl:srid 1 .
+}
+INSERT DATA {
+   <http://localhost:9999/blazegraph/namespace/churchill/sparql/> ocgl:srsname "EPSG:27700" .
+}
+
+PREFIX om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
+
+PREFIX ocgl: <http://www.theworldavatar.com/ontology/ontocitygml/citieskg/OntoCityGML.owl#>
+SELECT ?g (COUNT(*) AS ?count) WHERE {GRAPH ?g {?a ?b ?c}} GROUP BY ?g
+
+I also did not replace the gml header.
+
+Building Agents:
+- TheWorldAvatar dependencies
+	- As described in the CitiesKG/Agents README, the JPS_BASE dependency was commented out.
+	- had to grab 671c5c3efa74b93fadb1af1c744c212c056fd56e for JPS_BAS_LIB 1.3.0
+	- I also had to manually bui/Users/jefferson/Dropbox/Part IIB projects/c4e-jec226-PartIIB/Codes/Setting up Java 8 for Mac OS X.txtld (man clean install) Agents/utils/parent-pom/ and Agents/utils/java-logging/development/.
+- Building CitiesKG with Maven
+	- Had to manually install (min install:install-file) Blazegraph jar as a Maven artefact apart from sticking it in Tomcat/lib.
+	- commits dd7bb14bf5968c819d47b7cc4cc67fa9fbad8b4f and f37d869ccf13537004904622e85314b04520b3e2 in branch 987-dev-review-the-naming-convention-of-different-methods-and-classes renamed a lot of stuff. I had to fix Envelope.java, DistanceAgent.java and DistanceAgentTest.java (KnowledgeBaseClientInterface -> StoreClient, RemoteKnowledgeBaseClient -> RemoteStoreClient, KGRouter -> StoreRouter).
+	- Had to manually configure uri.route in agents/main/resources/config.properties to localhost:9999/blazegraph/namespace/churchill.

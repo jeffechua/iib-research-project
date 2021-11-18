@@ -1,0 +1,13 @@
+{
+    "name": "Churchill Topography Visualisation",
+    "description": "A visualisation of topographic data from the Ordnance Survey for Churchill College.",
+
+    "apiKey": "pk.eyJ1IjoiamVmZmVjaHVhIiwiYSI6ImNrdndmcnR2ZjBhMXgyb3A0Ym5ia25lazEifQ.YdmqYzpsR-8T9hq4wXhnIQ",
+    "defaultCenter": [0.119115, 52.205363],
+    "defaultZoom": 13,
+    "defaultBearing": -30,
+    "defaultPitch": 40,
+
+    "selectionsTitle": "Current Group:",
+    "fixedDirectory": "fixed"
+}

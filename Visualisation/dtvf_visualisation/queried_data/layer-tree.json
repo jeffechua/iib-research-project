@@ -1,0 +1,15 @@
+[
+    {
+        "groupName": "Buildings",
+        "controlType": "checkbox",
+        "layers": [
+            {
+                "layerName": "Buildings",
+                "defaultState": "visible",
+                "layerIDs": [
+                    "buildings"
+                ]
+            }
+        ]
+    }
+]
