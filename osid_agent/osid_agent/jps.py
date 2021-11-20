@@ -1,9 +1,7 @@
-# The purpose of this module is to create and start JAVA resource gateway objects
-# to the TWA/JPS base library to be used in other modules and scripts
-# ===============================================================================
+from .sparql import *
 from py4jps.resources import JpsBaseLib
 
-__all__ = ['jpsBaseLibView']
+__all__ = ['remote_client']
 
 # Instantiate and start resource gateway object to JPS_BASE_LIB
 jpsBaseLibGW = JpsBaseLib()
@@ -13,3 +11,5 @@ jpsBaseLibGW.launchGateway()
 jpsBaseLibView = jpsBaseLibGW.createModuleView()
 jpsBaseLibGW.importPackages(jpsBaseLibView, "uk.ac.cam.cares.jps.base.query.*")
 # jpsBaseLibGW.importPackages(jpsBaseLibView, "uk.ac.cam.cares.jps.base.timeseries.*")
+
+remote_client = jpsBaseLibView.RemoteStoreClient(QUERY_ENDPOINT, UPDATE_ENDPOINT)

@@ -1,0 +1,4 @@
+# Add new libraries here during development. If you are confident that they will
+# be sticking around, then move them to core_requirements. This is so when we are
+# messing around with dependencies we don't keep rebuilding py4jps and so on each
+# time we build, which takes forever and is annoying.

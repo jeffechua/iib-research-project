@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  example:
-    image: osid_agent:1.0.0
+  osid-agent:
+    image: osid-agent:1.0.0
     build: .
-    container_name: osid_agent
+    container_name: osid-agent
     ports:
       - 55002:5000

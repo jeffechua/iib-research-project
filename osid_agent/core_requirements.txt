@@ -1,0 +1,9 @@
+# core_requirements and extra_requirements are separated in order to optimise Docker rebuilding time.
+# Some of these take pretty long to build, so new misc. libraries should be added in extra_requirements
+# If it seems like a library will be sticking around, move it in here so you're not rebuilding it every
+# time you change extra_requirements.txt
+flask==1.1.2
+gunicorn==20.0.4
+py4jps
+requests
+git+https://github.com/cambridge-cares/TheWorldAvatar@develop#subdirectory=Agents/utils/python-utils

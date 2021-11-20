@@ -1,5 +1,4 @@
 import requests
-import sqlite3
 from keys import*
 
 churchill_bbox = [541000, 254000, 551000, 264000]
