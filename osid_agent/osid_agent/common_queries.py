@@ -19,17 +19,18 @@ def query_identifier_properties(id_type, id):
     query = autoformat(f'''
     SELECT * WHERE {{
         GRAPH city:identifiers|
-        {{ city:{id_type}|{id}|  ph:featureType       ?featureType  ;
-                                 ph:identifierType    "{id_type}"   ;
-                                 ph:identifierString  "{id}"        .
-        OPTIONAL {{ city:{id_type}|{id}| ph:identifies ?identificand }} }}
+        {{ city:{id_type}|{id}|  osid:hasFeatureType       ?featureType  ;
+                                 osid:hasIdentifierType    "{id_type}"   ;
+                                 osid:hasValue             "{id}"        ;
+                                 osid:hasRank              ?rank         ;
+        OPTIONAL {{ city:{id_type}|{id}| osid:identifies ?identificand }} }}
     }}
     ''')
     response = json.loads(remote_client.execute(query))
     if len(response) != 1:
         return False, None, None
     else:
-        return True, response[0]['featureType'], response[0].get('identificand')
+        return True, response[0]['featureType'], response[0]['rank'], response[0].get('identificand')
 
 
 def query_identifier_links(id_type, id):
@@ -39,22 +40,31 @@ def query_identifier_links(id_type, id):
         - `counterparty`: IRI string to the linked identifier.
         - `featureType`: the feature type of the linked identifier.
         - `identifierType`: the identifier type of the linked identifier.
-        - `identifierString`: the value of the linked identifier.
+        - `value`: the value of the linked identifier.
             
     Values are guaranteed to be non-null.
     '''
     # Query KG for linked identifiers, which may return 0 or more results
-    links_query = autoformat(f'''
+    query = autoformat(f'''
     SELECT * WHERE {{
         GRAPH city:identifiers|
-        {{ city:{id_type}|{id}|  ph:linkedTo          ?counterparty     .
-           ?counterparty         ph:featureType       ?featureType      ;
-                                 ph:identifierType    ?identiferType    ;
-                                 ph:identifierString  ?identifierString }}
-    }};
+        {{ city:{id_type}|{id}|  osid:isLinkedTo           ?counterparty     .
+           ?counterparty         osid:hasFeatureType       ?featureType      ;
+                                 osid:hasIdentifierType    ?identiferType    ;
+                                 osid:hasValue             ?value            ;
+                                 osid:hasRank              ?rank             }}
+    }}
     ''')
-    return json.loads(remote_client.execute(links_query))
+    return json.loads(remote_client.execute(query))
 
+
+def predict_rank(feature_type):
+    if feature_type == 'street' or feature_type == 'road':
+        return 2
+    elif feature_type == 'roadlink':
+        return 1
+    else:
+        return 0
 
 def query_osli(id):
     '''
@@ -64,56 +74,64 @@ def query_osli(id):
             - `id_type`: the identifier type of the linked identifier.
             - `id`: the value of the linked identifier.
             - `feature_type`: the feature type of the linked identifier.
+            - `rank`: the rank of the linked identifier.
         - feature type of the queried identifier (string)
         - identifier type of the queried identifier (string)
+        - rank of the queried identifier (int): 0, 1 or 2.
 
     Return modes:
-        - `None`, `None`, `None`: invalid identifier.
-        - `[]`, `None`, `None`: valid identifier, but the Linked Identifiers API has no data on it.
-        - `[0 or more items]`, `<string>`, `<string>`: valid identifier and Linked Identifiers has data on it.
+        - `None`, `None`, `None`, `None`: invalid identifier.
+        - `[]`, `None`, `None`, `None`: valid identifier, but the Linked Identifiers API has no data on it.
+        - `[0 or more items]`, `<string>`, `<string>`, `<int>`: valid identifier and Linked Identifiers has data on it.
     '''
     res = requests.get('https://api.os.uk/search/links/v1/identifiers/' + id, {'key': OSAPI_KEY}).json()
     # check for errors
     links = []
     if 'message' in res:
-        feature_type = None
-        identifier_type = None
         if res['message'] == "Identifier not found":
-            pass
+            return [], None, None, None
         elif res['message'] == 'Identifier is not valid':
-            return None, None, None
+            return None, None, None, None
     else:
         if len(res['linkedIdentifiers']) != 1:
             raise LookupError(f'{len(res["linkedIdentifiers"])} identifiers found with name {id}')
         res = res['linkedIdentifiers'][0]
         feature_type = res['linkedIdentifier']['featureType'].lower()
         identifier_type = res['linkedIdentifier']['identifierType'].lower()
+        rank = predict_rank(feature_type)
         for correl in res['correlations']:
             counter_id_type = correl['correlatedIdentifierType'].lower()
             counter_feature_type = correl['correlatedFeatureType'].lower()
+            counter_rank = predict_rank(counter_feature_type)
+            if rank != 0 and counter_feature_type == 'topographicarea': continue
             if counter_id_type == 'guid': continue
-            for id in correl['correlatedIdentifiers']:
+            for result in correl['correlatedIdentifiers']:
                 links.append({
                     'id_type': counter_id_type,
-                    'id': id['identifier'],
-                    'feature_type': counter_feature_type
+                    'id': result['identifier'],
+                    'feature_type': counter_feature_type,
+                    'rank': counter_rank
                 })
-    return links, feature_type, identifier_type
+        return links, feature_type, identifier_type, rank
 
 
-def instantiation_update_string(id_type, id, feature_type):
+def instantiation_update_string(id_type, id, feature_type, rank):
     '''
     Returns a SPARQL query string which instantiates the identifier as specified in the knowledge graph.
 
     If these properties already existed, the query overwrites, not duplicates them; this operation is idempotent.
     '''
     return f'''
-    DELETE WHERE {{ GRAPH city:identifiers| {{ city:{id_type}|{id}| ph:featureType      ?a }} }};
-    DELETE WHERE {{ GRAPH city:identifiers| {{ city:{id_type}|{id}| ph:identifierType   ?a }} }};
-    DELETE WHERE {{ GRAPH city:identifiers| {{ city:{id_type}|{id}| ph:identifierString ?a }} }};
+    DELETE WHERE {{ GRAPH city:identifiers| {{ city:{id_type}|{id}| osid:hasFeatureType      ?a }} }};
+    DELETE WHERE {{ GRAPH city:identifiers| {{ city:{id_type}|{id}| osid:hasIdentifierType   ?a }} }};
+    DELETE WHERE {{ GRAPH city:identifiers| {{ city:{id_type}|{id}| osid:hasValue ?a }} }};
+    DELETE WHERE {{ GRAPH city:identifiers| {{ city:{id_type}|{id}| osid:hasRank ?a }} }};
+    DELETE WHERE {{ GRAPH city:identifiers| {{ city:{id_type}|{id}| rdf:type ?a }} }};
     INSERT DATA {{
         GRAPH city:identifiers|
-        {{ city:{id_type}|{id}| ph:featureType       "{feature_type}"  ;
-                                ph:identifierType    "{id_type}"       ;
-                                ph:identifierString  "{id}"            }}
+        {{ city:{id_type}|{id}| osid:hasFeatureType       "{feature_type}"  ;
+                                osid:hasIdentifierType    "{id_type}"       ;
+                                osid:hasValue             "{id}"            ;
+                                osid:hasRank             "{rank}"            ;
+                                rdf:type                  osid:PersistentIdentifier }}
     }};'''

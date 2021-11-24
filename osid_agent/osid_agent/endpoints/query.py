@@ -13,6 +13,7 @@ def query_graph_info():
         - `id_type`: same as provided, but converted to lowercase.
         - `feature_type`: the feature type as a string, or null if the identifier is not instantiated in the graph.
         - `identificand`: an IRI string pointing to the cityobject this identifier identifies, or null.
+        - `rank`: the rank of the identified object, or null.
     '''
 
 # Define a route for API requests
@@ -25,19 +26,22 @@ def query_graph(id_type, id):
         - `id_type`: same as provided, but converted to lowercase.
         - `feature_type`: the feature type as a string, or null if the identifier is not instantiated in the graph.
         - `identificand`: an IRI string pointing to the cityobject this identifier identifies, or null.
+        - `rank`: the rank of the identified object, or null.
         - `links`: a list of 0 or more dictionaries, each of which contains keys (values guaranteed non-None):
             - `counterparty`: IRI string to the linked identifier.
             - `featureType`: the feature type of the linked identifier.
             - `identifierType`: the identifier type of the linked identifier.
-            - `identifierString`: the value of the linked identifier.
+            - `value`: the value of the linked identifier.
+            - `rank`: the rank of the linked identifier.
     '''
     id_type = id_type.lower()
-    exists, feature_type, identificand = query_identifier_properties(id_type, id)
+    exists, feature_type, rank, identificand = query_identifier_properties(id_type, id)
     links = query_identifier_links(id_type, id)
     return jsonify({
         'id': id,
         'id_type': id_type,
         'feature_type': feature_type,
+        'rank': rank,
         'identificand': identificand,
         'linked_identifiers': links
     })

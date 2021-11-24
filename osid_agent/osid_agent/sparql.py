@@ -9,7 +9,7 @@ __all__ = ['QUERY_ENDPOINT', 'UPDATE_ENDPOINT', 'autoprefix', 'prefixes', 'escap
 # Predefined prefixes for SPARQL queries (WITHOUT trailing '<' and '>')
 PREFIXES = {
     'city':  CITY_DB_PREFIX,
-    'ph':    'http://www.placeholder.com/ontology#',
+    'osid':  'http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#',
     'rdf':   'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
     'rdfs':  'http://www.w3.org/2000/01/rdf-schema#',
     'ocgl':  'http://www.theworldavatar.com/ontology/ontocitygml/citieskg/OntoCityGML.owl#',

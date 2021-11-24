@@ -1,11 +1,10 @@
 from flask import Flask
-from .endpoints import query, instantiate, bind, os
+from .endpoints import query, bind, os
 
 # Create the Flask app object
 app = Flask(__name__)
 app.debug = True
 app.register_blueprint(query.blueprint, url_prefix='/query')
-app.register_blueprint(instantiate.blueprint, url_prefix='/instantiate')
 app.register_blueprint(bind.blueprint, url_prefix='/bind')
 app.register_blueprint(os.blueprint, url_prefix='/os')
 

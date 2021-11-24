@@ -1,0 +1,226 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#"
+     xml:base="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:OntoOSID="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#">
+    <owl:Ontology rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl">
+        <dc:date rdf:datatype="http://www.w3.org/2001/XMLSchema#string">22 November 2021</dc:date>
+        <gitCommitHash rdf:datatype="http://www.w3.org/2001/XMLSchema#string">c0599beca8df55873a1ab061dee64e52c510c6a0</gitCommitHash>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Ontology for representation of UK Ordnance Survey &quot;Open Identifiers&quot; resources.</rdfs:comment>
+        <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1</owl:versionInfo>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/dc/elements/1.1/date -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.org/dc/elements/1.1/date"/>
+    
+
+
+    <!-- http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#gitCommitHash -->
+
+    <owl:AnnotationProperty rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#gitCommitHash"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#identifies -->
+
+    <owl:ObjectProperty rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#identifies">
+        <rdfs:domain rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A relation that defines that an identifer identifies an identificand. For a Persistent Identifier, this property is guaranteed to not change.</rdfs:comment>
+        <rdfs:isDefinedBy rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl</rdfs:isDefinedBy>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#isLinkedTo -->
+
+    <owl:ObjectProperty rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#isLinkedTo">
+        <rdfs:domain rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier"/>
+        <rdfs:range rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A relation that defines that two identifiers are linked according to the OS Open Linked Identifiers data set.</rdfs:comment>
+        <rdfs:isDefinedBy rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl</rdfs:isDefinedBy>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasFeatureType -->
+
+    <owl:DatatypeProperty rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasFeatureType">
+        <rdfs:domain rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The type of feature identified, which is either &quot;blpu&quot;, &quot;road&quot;, &quot;roadlink&quot;, &quot;street&quot;, or &quot;topographicarea&quot; (or &quot;orroad&quot;, &quot;orroadlink&quot;, but we do not currently import them). [OS Open Linked Identifiers Technical Specification v1.1]</rdfs:comment>
+        <rdfs:isDefinedBy rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl</rdfs:isDefinedBy>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasIdentifierType -->
+
+    <owl:DatatypeProperty rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasIdentifierType">
+        <rdfs:domain rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The identifier type of the identifier, which also serves as its namespace; either &quot;guid&quot;, &quot;toid&quot;, &quot;uprn&quot; or &quot;usrn&quot;. [OS Open Linked Identifiers Technical Specification v1.1]</rdfs:comment>
+        <rdfs:isDefinedBy rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl</rdfs:isDefinedBy>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasRank -->
+
+    <owl:DatatypeProperty rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasRank">
+        <rdfs:domain rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The hierarchial rank of the identifier. BLPUs and TopographicAreas of buildings are rank 0; RoadLinks are rank 1; Roads, Streets and road TopographicAreas are rank 2.</rdfs:comment>
+        <rdfs:isDefinedBy rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl</rdfs:isDefinedBy>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasValue -->
+
+    <owl:DatatypeProperty rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasValue">
+        <rdfs:domain rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The unique string of the identifier.</rdfs:comment>
+        <rdfs:isDefinedBy rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl</rdfs:isDefinedBy>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#linksLastRetrieved -->
+
+    <owl:DatatypeProperty rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#linksLastRetrieved">
+        <rdfs:domain rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The datetime when links for this identifier were last retrieved from the Ordnance Survey. For data from the Linked Identifiers API, this is the time of query; for Open Linked Identifiers data package downloads, this is the time of package publication.</rdfs:comment>
+        <rdfs:isDefinedBy rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl</rdfs:isDefinedBy>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#linksRetrievedFrom -->
+
+    <owl:DatatypeProperty rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#linksRetrievedFrom">
+        <rdfs:domain rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">The source from which links for this identifier were retrieved, either &quot;api&quot; or &quot;package&quot;.</rdfs:comment>
+        <rdfs:isDefinedBy rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl</rdfs:isDefinedBy>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier -->
+
+    <owl:Class rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasFeatureType"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasIdentifierType"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasRank"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#hasValue"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#linksLastRetrieved"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#linksRetrievedFrom"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A string for identifying objects which is unique within its namespace.</rdfs:comment>
+        <rdfs:isDefinedBy rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl</rdfs:isDefinedBy>
+    </owl:Class>
+    
+
+
+    <!-- http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#PersistentIdentifier -->
+
+    <owl:Class rdf:about="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#PersistentIdentifier">
+        <rdfs:subClassOf rdf:resource="http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#Identifier"/>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A identifier which is guaranteed to not change for the lifetime of the identified object and never be reused.</rdfs:comment>
+        <rdfs:isDefinedBy rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl</rdfs:isDefinedBy>
+    </owl:Class>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi -->
+

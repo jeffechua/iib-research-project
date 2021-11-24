@@ -12,7 +12,7 @@ def bind_identifier(id_type, id):
 
 def bind_update_string(id_type, id):
     return f'''
-    DELETE WHERE {{ GRAPH city:identifiers| {{ city:{id_type}|{id}|  ph:identifies  ?a }} }};
-    INSERT       {{ GRAPH city:identifiers| {{ city:{id_type}|{id}|  ph:identifies  city:cityobject|{id}| }} }}
+    DELETE WHERE {{ GRAPH city:identifiers| {{ city:{id_type}|{id}|  osid:identifies  ?a }} }};
+    INSERT       {{ GRAPH city:identifiers| {{ city:{id_type}|{id}|  osid:identifies  city:cityobject|{id}| }} }}
     WHERE        {{ city:cityobject|{id}|  ocgl:id        ?identificand }};
     '''

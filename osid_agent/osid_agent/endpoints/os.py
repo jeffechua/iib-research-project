@@ -62,6 +62,7 @@ def pull_from_os_info():
     if they existed before. Response describes success or failure, and the number of imported links if successful.
     '''
 
+
 @blueprint.route('/pull/<id_type>/<id>', methods=['PUSH', 'GET'])
 def pull_from_os(id_type, id, instantiate=True, update_out=None, links_out=None):
     ''''
@@ -70,7 +71,7 @@ def pull_from_os(id_type, id, instantiate=True, update_out=None, links_out=None)
     `instantiate` should either be `True`, `False`, or a set.
     - `True`: instantiate queried identifier and any linked identifiers.
     - `False`: do not instantiate any identifiers.
-    - set: for each identifier, check if it is in the set; only if not, instantiate it and add identifier to set.
+    - `set object`: for each identifier, check if it is in the set; only if not, instantiate it and add identifier to set.
     Also instantiates the queried identifier and any linked identifiers if `instantiate=true` and present in Linked
     Identifiers API. This is the default, and cannot be modified when calling this via HTTP request.
     As instantiation is idempotent, this will not create duplicate instances, but it will overwrite incorrect properties
@@ -87,7 +88,7 @@ def pull_from_os(id_type, id, instantiate=True, update_out=None, links_out=None)
     update_lines = []
 
     # Query data on the identifier from the OS Linked Identifiers API
-    os_links, os_feature_type, os_id_type = query_osli(id)
+    os_links, os_feature_type, os_id_type, os_rank = query_osli(id)
     if os_links == None:
         return f'{id_type}:{id}:unknown: Invalid identifier.'
     if os_feature_type == None:
@@ -95,52 +96,46 @@ def pull_from_os(id_type, id, instantiate=True, update_out=None, links_out=None)
     if os_id_type != id_type:
         return f'{id_type}:{id}:{os_feature_type} OSLI believes is a {os_id_type}, not a {id_type}; aborting.'
     
+    original_length = len(os_links)
+    os_links = list(filter(lambda link: link['rank'] >= os_rank, os_links))
+
     # If the caller wants to know the links, give them to them
     if links_out != None:
         links_out.update([f'{link["id_type"]}:{link["id"]}:{link["feature_type"]}' for link in os_links])
 
     # Instantiate identifiers if instantiate=true
     if instantiate == True:
-        update_lines.append(instantiation_update_string(id_type, id, os_feature_type))
+        update_lines.append(instantiation_update_string(id_type, id, os_feature_type, os_rank))
         for link in os_links:
-            update_lines.append(instantiation_update_string(link['id_type'], link['id'], link['feature_type']))
+            update_lines.append(instantiation_update_string(link['id_type'], link['id'], link['feature_type'], link['rank']))
 
     # If 'instantiate' is a set, instantiate identifiers only if they aren't in it, and then add them to it
     elif isinstance(instantiate, set):
         if f'{id_type}:{id}:{os_feature_type}' not in instantiate:
-            update_lines.append(instantiation_update_string(id_type, id, os_feature_type))
+            update_lines.append(instantiation_update_string(id_type, id, os_feature_type, os_rank))
             instantiate.add(f'{id_type}:{id}:{os_feature_type}')
         for link in os_links:
-            if f'{link["id_type"]}:{link["id"]}' not in instantiate:
-                update_lines.append(instantiation_update_string(link["id_type"], link["id"], link["feature_type"]))
+            if f'{link["id_type"]}:{link["id"]}:{link["feature_type"]}' not in instantiate:
+                update_lines.append(instantiation_update_string(link["id_type"], link["id"], link["feature_type"], link['rank']))
                 instantiate.add(f'{link["id_type"]}:{link["id"]}:{link["feature_type"]}')
 
     # Import links (removing all old links)
     self_iri = f'city:{id_type}|{id}|'
     update_lines.append(f'''
-    DELETE WHERE {{
-        GRAPH city:identifiers|
-        {{ city:{id_type}|{id}|  ph:linkedTo  ?linked }}
-    }};
-    DELETE WHERE {{
-        GRAPH city:identifiers|
-        {{ ?linked  ph:linkedTo  city:{id_type}|{id}| }}
-    }};
-    DELETE WHERE {{
-        GRAPH city:identifiers|
-        {{ city:{id_type}|{id}|  ph:linksLastUpdated ?datetime }}
-    }};
-    INSERT {{
-        GRAPH city:identifiers| {{ {self_iri} ph:linksLastUpdated ?now }}
-    }} WHERE {{
-        SELECT ?now WHERE {{ BIND(xsd:dateTime(NOW()) as ?now)}}
-    }};
+    DELETE {{ {self_iri}  osid:isLinkedTo  ?linked.
+              ?linked     osid:isLinkedTo  {self_iri}.}}
+    WHERE  {{ GRAPH city:identifiers| {{ ?linked osid:isLinkedTo {self_iri};
+                                                 osid:hasRank ?rank. FILTER(?rank >= "{os_rank}") }}}};
+    DELETE WHERE {{ GRAPH city:identifiers| {{ {self_iri}  osid:linksLastRetrieved ?datetime; osid:linksRetrievedFrom ?source.  }}}};
+    INSERT {{ GRAPH city:identifiers| {{ {self_iri} osid:linksLastRetrieved ?now; osid:linksRetrievedFrom "api". }}}}
+    WHERE {{ SELECT ?now WHERE {{ BIND(xsd:dateTime(NOW()) as ?now)}} }};
     INSERT DATA {{ GRAPH city:identifiers| {{
+        {self_iri} osid:linksRetrievedFrom "api".
     ''')
     for link in os_links:
         cpty_iri = f'city:{link["id_type"]}|{link["id"]}|'
-        update_lines.append(f'{self_iri} ph:linkedTo {cpty_iri}.')
-        update_lines.append(f'{cpty_iri} ph:linkedTo {self_iri}.')
+        update_lines.append(f'{self_iri} osid:isLinkedTo {cpty_iri}.')
+        update_lines.append(f'{cpty_iri} osid:isLinkedTo {self_iri}.')
     update_lines.append('} };')
 
     if update_out == None:
@@ -148,7 +143,7 @@ def pull_from_os(id_type, id, instantiate=True, update_out=None, links_out=None)
     else:
         update_out.append('\n'.join(update_lines))
 
-    return f"{id_type}:{id}:{os_feature_type} {len(os_links)} links imported successfully."
+    return f"{id_type}:{id}:{os_feature_type} {len(os_links)}/{original_length} links imported successfully."
 
 
 @blueprint.route('/pull-all/', methods=['PUSH', 'GET'])
@@ -174,6 +169,7 @@ def pull_all_from_os(count = -1):
 
     # Do OSLI pulls and bindings for TOIDs
     updates = []
+    first_order_ids = set()
     second_order_ids = set() # BLPUs
     third_order_ids = set()  # RoadLinks, Streets, bldg-TAreas ==[filter]==> RoadLinks, Streets
     fourth_order_ids = set()  # BLPUs, RoadLinks, Roads, Streets, road-TAreas ==[filter]==> Roads, Streets, road-TAreas
@@ -183,51 +179,41 @@ def pull_all_from_os(count = -1):
         # extract id
         iri_parts = row['building'].split('/')
         id = iri_parts[len(iri_parts)-2]
+        first_order_ids.add(f'toid:{id}:topographicarea')
         # pull from OSLI (deferred execution)
         pull_response = pull_from_os('toid', id, False, updates, second_order_ids)
         print_and_add_to_response(pull_response)
         # instantiate (deferred execution); do this manually since OSLI does not have all TOIDs
-        updates.append(instantiation_update_string('toid', id, 'topographicarea'))
+        updates.append(instantiation_update_string('toid', id, 'topographicarea', 0))
         instantiated.add(f'toid:{id}:topographicarea')
         # binding (also deferred)
         updates.append(bind_update_string('toid', id))
 
-    # Second-order ids, i.e. those linked to the building TOIDs, should all be BLPUs.
-    # Pull BLPUs
+    # Second-order ids, i.e. those geq-linked to TOIDs, should all be BLPUs.
     print_and_add_to_response("PULLING BLPUs")
     for soid in second_order_ids:
         parts = soid.split(':')
         pull_response = pull_from_os(parts[0], parts[1], instantiated, updates, third_order_ids)
         print_and_add_to_response(pull_response)
 
-    # Third-order ids, i.e. those linked to the BLPUs, should be RoadLinks, Streets and building TOIDs
-    # Ignore building TOIDs and Streets
-    # Pull RoadLinks
-    print_and_add_to_response("PULLING ROADLINKS")
+    # Third-order ids, i.e. those geq-linked BLPUs, should be RoadLinks, Streets and TopographicAreas
+    # remove the TopographicAreas as we already did that in the first round
+    third_order_ids -= first_order_ids
+    print_and_add_to_response("PULLING ROADLINKS (AND STREETS)")
     for soid in third_order_ids:
         parts = soid.split(':')
-        if parts[2] != 'roadlink':
-            continue
         pull_response = pull_from_os(parts[0], parts[1], instantiated, updates, fourth_order_ids)
         print_and_add_to_response(pull_response)
 
-    # Pulling of Street-level objects because they have up to over a THOUSAND BLPUs associated
-    # and this makes the Blazegraph update query stack overflow :(
-
-    # # Fourth-order ids, should be RoadLinks, Roads, road TAreas, Streets and BLPUs
-    # # Ignore BLPUs and RoadLinks
-    # # Pull Roads, road TAreas and Streets
-    # fourth_order_ids -= third_order_ids
-    # print_and_add_to_response("PULLING ROADS, ROAD TOPOGRAPHIC AREAS AND STREETS")
-    # for soid in fourth_order_ids:
-    #     parts = soid.split(':')
-    #     if parts[2] == 'blpu' or parts[2] == 'roadlink':
-    #         continue
-    #     pull_response = pull_from_os(parts[0], parts[1], instantiated, updates)
-    #     print_and_add_to_response(pull_response)
-
-    # As structured, I think we only directly pull direct parents of the building in the sense
-    # that BLPUs are contained by RoadLinks are contained by Roads/Streets/road-TAreas
+    # Fourth-order ids, should be Roads, Streets and BLPUs
+    # remove Streets and BLPUs
+    fourth_order_ids -= third_order_ids
+    fourth_order_ids -= second_order_ids
+    print_and_add_to_response("PULLING ROADS AND STREETS")
+    for soid in fourth_order_ids:
+        parts = soid.split(':')
+        pull_response = pull_from_os(parts[0], parts[1], instantiated, updates)
+        print_and_add_to_response(pull_response)
 
     # Bind all buildings
     print_and_add_to_response("Beginning to execute updates.")
