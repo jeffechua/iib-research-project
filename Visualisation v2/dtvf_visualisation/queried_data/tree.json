@@ -1,0 +1,32 @@
+[
+    {
+        "layerName": "Wall Centroids",
+        "defaultState": "visible",
+        "layerIDs": ["wall-centroids"]
+    },
+    {
+        "layerName": "Roof Centroids",
+        "defaultState": "visible",
+        "layerIDs": ["roof-centroids"]
+    },
+    {
+        "layerName": "Ground Centroids",
+        "defaultState": "visible",
+        "layerIDs": ["ground-centroids"]
+    },
+    {
+        "layerName": "Walls",
+        "defaultState": "visible",
+        "layerIDs": ["walls"]
+    },
+    {
+        "layerName": "Roofs",
+        "defaultState": "visible",
+        "layerIDs": ["roofs"]
+    },
+    {
+        "layerName": "Grounds",
+        "defaultState": "visible",
+        "layerIDs": ["grounds"]
+    }
+]

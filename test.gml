@@ -6,6 +6,114 @@
             <gml:upperCorner>543895.9500000007 259593.54999944256 36.15</gml:upperCorner>
         </gml:Envelope>
     </gml:boundedBy>
+	<core:cityObjectMember>
+		<bldg:Building gml:id="BLDG_0003000f001ec191">
+			<gml:name>BLDG_0003000f001ec191</gml:name>
+			<bldg:roofType>1000</bldg:roofType>
+			<bldg:boundedBy>
+				<bldg:WallSurface gml:id="GEOM_1336465">
+					<bldg:lod2MultiSurface>
+						<gml:MultiSurface srsName="EPSG:25833" srsDimension="3">
+							<gml:surfaceMember>
+								<gml:Polygon>
+									<gml:exterior>
+										<gml:LinearRing>
+											<gml:posList>394241.348771376 5819469.17117407 35.7000007629395 394241.348838883 5819469.17127369 38.8517020205234 394250.670214668 5819476.64615899 38.8517020205234 394250.67014716 5819476.64605938 35.7000007629395 394241.348771376 5819469.17117407 35.7000007629395</gml:posList>
+										</gml:LinearRing>
+									</gml:exterior>
+								</gml:Polygon>
+							</gml:surfaceMember>
+						</gml:MultiSurface>
+					</bldg:lod2MultiSurface>
+				</bldg:WallSurface>
+			</bldg:boundedBy>
+			<bldg:boundedBy>
+				<bldg:WallSurface gml:id="GEOM_1336468">
+					<bldg:lod2MultiSurface>
+						<gml:MultiSurface srsName="EPSG:25833" srsDimension="3">
+							<gml:surfaceMember>
+								<gml:Polygon>
+									<gml:exterior>
+										<gml:LinearRing>
+											<gml:posList>394245.356916864 5819467.29516355 35.7000007629395 394245.356984371 5819467.29526317 38.8517020205234 394241.348838883 5819469.17127369 38.8517020205234 394241.348771376 5819469.17117407 35.7000007629395 394245.356916864 5819467.29516355 35.7000007629395</gml:posList>
+										</gml:LinearRing>
+									</gml:exterior>
+								</gml:Polygon>
+							</gml:surfaceMember>
+						</gml:MultiSurface>
+					</bldg:lod2MultiSurface>
+				</bldg:WallSurface>
+			</bldg:boundedBy>
+			<bldg:boundedBy>
+				<bldg:WallSurface gml:id="GEOM_1336467">
+					<bldg:lod2MultiSurface>
+						<gml:MultiSurface srsName="EPSG:25833" srsDimension="3">
+							<gml:surfaceMember>
+								<gml:Polygon>
+									<gml:exterior>
+										<gml:LinearRing>
+											<gml:posList>394251.257059217 5819473.33135956 35.7000007629395 394251.257126725 5819473.33145918 38.8517020205234 394245.356984371 5819467.29526317 38.8517020205234 394245.356916864 5819467.29516355 35.7000007629395 394251.257059217 5819473.33135956 35.7000007629395</gml:posList>
+										</gml:LinearRing>
+									</gml:exterior>
+								</gml:Polygon>
+							</gml:surfaceMember>
+						</gml:MultiSurface>
+					</bldg:lod2MultiSurface>
+				</bldg:WallSurface>
+			</bldg:boundedBy>
+			<bldg:boundedBy>
+				<bldg:WallSurface gml:id="GEOM_1336466">
+					<bldg:lod2MultiSurface>
+						<gml:MultiSurface srsName="EPSG:25833" srsDimension="3">
+							<gml:surfaceMember>
+								<gml:Polygon>
+									<gml:exterior>
+										<gml:LinearRing>
+											<gml:posList>394250.67014716 5819476.64605938 35.7000007629395 394250.670214668 5819476.64615899 38.8517020205234 394251.257126725 5819473.33145918 38.8517020205234 394251.257059217 5819473.33135956 35.7000007629395 394250.67014716 5819476.64605938 35.7000007629395</gml:posList>
+										</gml:LinearRing>
+									</gml:exterior>
+								</gml:Polygon>
+							</gml:surfaceMember>
+						</gml:MultiSurface>
+					</bldg:lod2MultiSurface>
+				</bldg:WallSurface>
+			</bldg:boundedBy>
+			<bldg:boundedBy>
+				<bldg:GroundSurface gml:id="GEOM_1336463">
+					<bldg:lod2MultiSurface>
+						<gml:MultiSurface srsName="EPSG:25833" srsDimension="3">
+							<gml:surfaceMember>
+								<gml:Polygon>
+									<gml:exterior>
+										<gml:LinearRing>
+											<gml:posList>394245.356916864 5819467.29516355 35.7000007629395 394241.348771376 5819469.17117407 35.7000007629395 394250.67014716 5819476.64605938 35.7000007629395 394251.257059217 5819473.33135956 35.7000007629395 394245.356916864 5819467.29516355 35.7000007629395</gml:posList>
+										</gml:LinearRing>
+									</gml:exterior>
+								</gml:Polygon>
+							</gml:surfaceMember>
+						</gml:MultiSurface>
+					</bldg:lod2MultiSurface>
+				</bldg:GroundSurface>
+			</bldg:boundedBy>
+			<bldg:boundedBy>
+				<bldg:RoofSurface gml:id="GEOM_1336470">
+					<bldg:lod2MultiSurface>
+						<gml:MultiSurface srsName="EPSG:25833" srsDimension="3">
+							<gml:surfaceMember>
+								<gml:Polygon>
+									<gml:exterior>
+										<gml:LinearRing>
+											<gml:posList>394241.348838883 5819469.17127369 38.8517020205234 394245.356984371 5819467.29526317 38.8517020205234 394251.257126725 5819473.33145918 38.8517020205234 394250.670214668 5819476.64615899 38.8517020205234 394241.348838883 5819469.17127369 38.8517020205234</gml:posList>
+										</gml:LinearRing>
+									</gml:exterior>
+								</gml:Polygon>
+							</gml:surfaceMember>
+						</gml:MultiSurface>
+					</bldg:lod2MultiSurface>
+				</bldg:RoofSurface>
+			</bldg:boundedBy>
+		</bldg:Building>
+	</core:cityObjectMember>
     <core:cityObjectMember>
         <bldg:Building gml:id="testbuilding">
             <bldg:lod1MultiSurface>

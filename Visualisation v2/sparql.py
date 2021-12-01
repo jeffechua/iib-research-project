@@ -1,14 +1,11 @@
-# The purpose of this module is to provide settings and functions relevant to
-# both 1) instantiating and also 2) retrieving time series objects to/from KG
-# ===============================================================================
+from config import *
 
-from .configs import QUERY_ENDPOINT, UPDATE_ENDPOINT, CITY_DB_PREFIX
-
-__all__ = ['QUERY_ENDPOINT', 'UPDATE_ENDPOINT', 'autoprefix', 'prefixes', 'escape', 'autoprefix', 'autoformat']
+__all__ = ['autoprefix', 'prefixes', 'escape', 'autoprefix', 'autoformat']
 
 # Predefined prefixes for SPARQL queries (WITHOUT trailing '<' and '>')
 PREFIXES = {
-    'city:':  CITY_DB_PREFIX,
+    'city:':  CITYDB_PREFIX,
+    'sdec:':  'http://www.theworldavatar.com/ontology/ontosdec/OntoSDec.owl#',
     'osid:':  'http://www.theworldavatar.com/ontology/ontoosid/OntoOSID.owl#',
     'rdf:':   'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
     'rdfs:':  'http://www.w3.org/2000/01/rdf-schema#',
@@ -16,7 +13,7 @@ PREFIXES = {
     'om2:':   'http://www.ontology-of-units-of-measure.org/resource/om-2/',
     'ts:':    'https://github.com/cambridge-cares/TheWorldAvatar/blob/develop/JPS_Ontology/ontology/ontotimeseries/OntoTimeSeries.owl#',
     'xsd:':   'http://www.w3.org/2001/XMLSchema#',
-    'geolit:':   'http://www.bigdata.com/rdf/geospatial/literals/v1#',
+    'geolit:':'http://www.bigdata.com/rdf/geospatial/literals/v1#',
     'geo:':   'http://www.bigdata.com/rdf/geospatial#'
 }
 
@@ -53,7 +50,9 @@ def _prefix(abbrv):
     return f'PREFIX {abbrv} <{PREFIXES[abbrv]}> '
 
 if __name__ == '__main__':
-    print(autoformat('''
+    id_type = 'toid'
+    id = 'osgb1000009945'
+    print(autoformat(f'''
     SELECT * WHERE {{
         GRAPH city:identifiers|
         {{ city:{id_type}|{id}|  osid:hasFeatureType       ?featureType  ;

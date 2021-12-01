@@ -1,0 +1,46 @@
+{
+    "dataSets": [
+        {
+            "name": "roof-centroids",
+            "dataType": "geojson",
+            "dataLocation": "roof-centroids.geojson",
+            "locationType": "point",
+            "metaFiles": ["roof-centroids-meta.json"]
+        },
+        {
+            "name": "wall-centroids",
+            "dataType": "geojson",
+            "dataLocation": "wall-centroids.geojson",
+            "locationType": "point",
+            "metaFiles": ["wall-centroids-meta.json"]
+        },
+        {
+            "name": "ground-centroids",
+            "dataType": "geojson",
+            "dataLocation": "ground-centroids.geojson",
+            "locationType": "point",
+            "metaFiles": ["ground-centroids-meta.json"]
+        },
+        {
+            "name": "roofs",
+            "dataType": "geojson",
+            "dataLocation": "roofs.geojson",
+            "locationType": "fill",
+            "metaFiles": ["roofs-meta.json"]
+        },
+        {
+            "name": "walls",
+            "dataType": "geojson",
+            "dataLocation": "walls.geojson",
+            "locationType": "fill",
+            "metaFiles": ["walls-meta.json"]
+        },
+        {
+            "name": "grounds",
+            "dataType": "geojson",
+            "dataLocation": "grounds.geojson",
+            "locationType": "fill",
+            "metaFiles": ["grounds-meta.json"]
+        }
+    ]
+}
