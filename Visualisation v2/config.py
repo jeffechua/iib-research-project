@@ -14,7 +14,6 @@ __all__ = ['QUERY_ENDPOINT', 'UPDATE_ENDPOINT', 'OUTPUT_DIR', 'CITYDB_PREFIX']
 # Read properties file
 props_file_parsed = ConfigObj(PROPERTIES_FILE)
 OUTPUT_DIR = props_file_parsed['output.directory']
-NAMESPACE = props_file_parsed['sparql.namespace']
-QUERY_ENDPOINT = props_file_parsed['sparql.query.endpoint'].replace('$', NAMESPACE)
-UPDATE_ENDPOINT = props_file_parsed['sparql.update.endpoint'].replace('$', NAMESPACE)
-CITYDB_PREFIX = props_file_parsed['sparql.citydb.prefix'].replace('$', NAMESPACE)
+QUERY_ENDPOINT = props_file_parsed['sparql.query.endpoint']
+UPDATE_ENDPOINT = props_file_parsed['sparql.update.endpoint']
+CITYDB_PREFIX = props_file_parsed['sparql.citydb.prefix']
