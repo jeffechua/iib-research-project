@@ -6,8 +6,10 @@ import json
 import os
 from config import *
 from jps import remote_client
+from pyproj import Transformer
 from polygon_deserialiser import deserialise_polygon_2d
 from sparql import *
+from srs import *
 
 # Specify plotting parameters for GeoJSON features (points, polygons, extruded polygons)
 
@@ -42,7 +44,7 @@ def extrusion_props(base, height, colour):
             }
 
 
-def feature_generator(id, props, geometry_type, coords):
+def make_feature(id, props, geometry_type, coords):
     return {
         'type': 'Feature',
         'id': id,
@@ -79,15 +81,14 @@ metadata_surfs = [[], [], []]
 # ''')
 
 surfaces_query = autoformat(f'''
-SELECT ?gmlId ?buildingGmlId ?theme ?centroid ?geometry (DATATYPE(?geometry) as ?structure) WHERE {{
+SELECT ?gmlId ?cityObjectId ?cityObjectClassId ?theme ?centroid ?normal ?geometry (DATATYPE(?geometry) as ?structure) WHERE {{
     ?surface  ocgl:GeometryType ?geometry;
               ocgl:gmlId        ?gmlId;
               sdec:hasTheme     ?theme;
               sdec:hasWgs84Centroid ?centroid;
-    OPTIONAL {{ ?surface ocgl:cityObjectId ?building.
-                ?toid    osid:identifies   ?building;
-                         osid:identifies   ?cityobject.
-                ?cityobject ocgl:gmlId ?buildingGmlId. }}
+              sdec:hasNormal    ?normal;
+              ocgl:cityObjectId ?cityObjectId.
+    ?cityObjectId ocgl:objectClassId ?cityObjectClassId.
     FILTER (!isBlank(?geometry))
 }}
 ''')
@@ -109,28 +110,40 @@ id = 0
 #     id += 1
 
 for surface in surfaces:
-    coords, z = deserialise_polygon_2d(
-        surface['geometry'], surface['structure'], flip_xy=True)
+    # retrieve geometric information
+    xy, z = deserialise_polygon_2d(
+        surface['geometry'], surface['structure'], transformer=proj, flip_xy_out=True)
     centroid = [float(number) for number in surface['centroid'].split('#')]
-    theme_index = theme_lookup[surface['theme']]
-    colour = colour_lookup[surface['theme']]
-    features_2d[theme_index].append(
-        feature_generator(id, fill_props(colour), 'Polygon', coords))
-    features_3d[theme_index].append(feature_generator(
-        id, extrusion_props(min(z), max(z), colour), 'Polygon', coords))
-    metadata_surfs[theme_index].append({
+    # retrieve thematic information
+    theme = surface['theme']
+    official_theme = theme if surface['cityObjectClassId'] == '26' else    \
+                     'roof' if surface['cityObjectClassId'] == '33' else   \
+                     'wall' if surface['cityObjectClassId'] == '34' else   \
+                     'ground' if surface['cityObjectClassId'] == '35' else \
+                     'unknown'
+    layer = theme_lookup[theme]
+    colour = colour_lookup[theme] if official_theme == theme else '#ffffff'
+    # construct metadata and coords
+    # WGS84 is officially (lat, lon), but the visualisation wants (lon, lat).
+    metadata = {
         'id': id,
         'gmlId': surface['gmlId'],
-        'buildingGmlId': surface['buildingGmlId']
-    })
+        'cityObjectId': surface['cityObjectId'],
+        'theme': theme,
+        'officialTheme': official_theme,
+        'normal': surface['normal'].split("#")
+    }
+    # write data
+    features_2d[layer].append(make_feature(
+        id, fill_props(colour), 'Polygon', xy))
+    features_3d[layer].append(make_feature(
+        id, extrusion_props(min(z), max(z), colour), 'Polygon', xy))
+    metadata_surfs[layer].append(metadata.copy())
     id += 1
-    features_centroids[theme_index].append(feature_generator(
+    features_centroids[layer].append(make_feature(
         id, circle_props(colour), 'Point', [centroid[1], centroid[0]]))
-    metadata_centroids[theme_index].append({
-        'id': id,
-        'gmlId': surface['gmlId'],
-        'buildingGmlId': surface['buildingGmlId']
-    })
+    metadata['id'] = id
+    metadata_centroids[layer].append(metadata)
     id += 1
 
 # Create lists for all files to write incl. respective folder and filenames
